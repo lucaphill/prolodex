@@ -1,4 +1,4 @@
-start() :- 
-    write('Digite o valor de X: '), 
-    read(X), nl,
-    write(X).
+start()
+:- consult(pokemon_gen5).
+:- consult(moves).
+:- consult(aprende).

@@ -49,8 +49,8 @@ for move_nome in sorted(moves_vistos):
     move_nome_url = move_nome.replace("_", "-")
     r = requests.get(f"https://pokeapi.co/api/v2/move/{move_nome_url}")
     
-    if r.status_code != 200:
-        continue
+    if r.status_code != 200: 
+        continue # pula se tiver algum erro
     
     m = r.json()
     tipo = to_prolog_atom(m["type"]["name"])
