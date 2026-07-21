@@ -1,3 +1,4 @@
+# Conversor das APIs de pokemon para prolog
 import requests
 import time
 
