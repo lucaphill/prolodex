@@ -2,7 +2,7 @@ import requests
 import time
 
 def to_prolog_atom(s):
-    return s.lower().replace("-", "_") # API usa hífen, não underline
+    return s.lower().replace("-", "_") # converte em algo legivel pelo prolog
 
 fatos_pokemon = []
 fatos_aprende = []
