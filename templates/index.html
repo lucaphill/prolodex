@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Batalha Pokemon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vermelho: #dc0a2d;
+    --vermelho-escuro: #a30821;
+    --creme: #f6f3ec;
+    --marinho: #1d2731;
+    --cinza: #d8d4ca;
+    --amarelo: #ffcb05;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--creme);
+    color: var(--marinho);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 60px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .topo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .bola {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(var(--vermelho) 0 48%, var(--marinho) 48% 52%, #fff 52% 100%);
+    border: 3px solid var(--marinho);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .bola::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 12px; height: 12px;
+    background: #fff;
+    border: 3px solid var(--marinho);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
+
+  .cartao {
+    background: #fff;
+    border: 2px solid var(--marinho);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 6px 6px 0 var(--marinho);
+    margin-bottom: 24px;
+  }
+
+  .linha-vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .vs {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    color: var(--vermelho);
+    font-size: 18px;
+  }
+
+  .campo { margin-bottom: 16px; }
+
+  .campo label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--vermelho-escuro);
+    margin-bottom: 6px;
+  }
+
+  .campo input[type="text"],
+  .campo input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--cinza);
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    background: var(--creme);
+    color: var(--marinho);
+  }
+
+  .campo input:focus {
+    outline: none;
+    border-color: var(--vermelho);
+  }
+
+  .botao {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: var(--vermelho);
+    color: #fff;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+  .botao:hover { background: var(--vermelho-escuro); }
+  .botao:active { transform: scale(0.98); }
+
+  .botao .mini-bola {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(#fff 0 48%, var(--marinho) 48% 52%, var(--vermelho) 52% 100%);
+    border: 2px solid var(--marinho);
+  }
+
+  #erro {
+    color: var(--vermelho-escuro);
+    font-weight: 600;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .resultado { display: none; }
+
+  .resultado-item { margin-bottom: 20px; }
+
+  .resultado-item:last-child { margin-bottom: 0; }
+
+  .resultado-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+
+  .resultado-nome {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    text-transform: capitalize;
+  }
+
+  .resultado-prob {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 19px;
+  }
+
+  .resultado-golpe {
+    font-size: 13px;
+    color: #5a6472;
+    margin-bottom: 6px;
+    text-transform: capitalize;
+  }
+
+  .barra-fundo {
+    height: 14px;
+    background: var(--cinza);
+    border-radius: 7px;
+    overflow: hidden;
+    border: 1px solid var(--marinho);
+  }
+
+  .barra-preenchida {
+    height: 100%;
+    background: var(--vermelho);
+    border-radius: 7px 0 0 7px;
+    transition: width 0.4s ease;
+  }
+
+  .velocidade {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 2px dashed var(--cinza);
+    font-size: 14px;
+    color: var(--marinho);
+  }
+
+  .velocidade b { color: var(--vermelho-escuro); }
+
+  .campo-golpes { font-size: 13px; }
+
+  .check-golpes {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vermelho-escuro);
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+  .check-golpes input { width: 15px; height: 15px; accent-color: var(--vermelho); }
+
+  .golpes-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .select-golpe {
+    width: 100%;
+    padding: 6px 8px;
+    border: 2px solid var(--cinza);
+    border-radius: 8px;
+    background: var(--creme);
+    color: var(--marinho);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+  }
+  .select-golpe:focus { outline: none; border-color: var(--vermelho); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topo">
+    <div class="bola"></div>
+    <h1>Simulador de Batalha Pokemon</h1>
+  </div>
+
+  <div class="cartao">
+    <div class="linha-vs">
+      <div class="campo" style="margin-bottom:0;">
+        <label for="pokA">Pokemon A</label>
+        <input type="text" id="pokA" list="lista-pokemons" autocomplete="off" placeholder="Digite para buscar...">
+      </div>
+      <div class="vs">VS</div>
+      <div class="campo" style="margin-bottom:0;">
+        <label for="pokB">Pokemon B</label>
+        <input type="text" id="pokB" list="lista-pokemons" autocomplete="off" placeholder="Digite para buscar...">
+      </div>
+    </div>
+
+    <datalist id="lista-pokemons">
+      {% for p in pokemons %}
+      <option value="{{ p }}">
+      {% endfor %}
+    </datalist>
+
+    <div class="linha-vs">
+      <div class="campo" style="margin-bottom:0;">
+        <label for="nivelA">Nivel A</label>
+        <input type="number" id="nivelA" value="50" min="1" max="100">
+      </div>
+      <div></div>
+      <div class="campo" style="margin-bottom:0;">
+        <label for="nivelB">Nivel B</label>
+        <input type="number" id="nivelB" value="50" min="1" max="100">
+      </div>
+    </div>
+
+    <div class="linha-vs" style="align-items:start;">
+      <div class="campo-golpes">
+        <label class="check-golpes">
+          <input type="checkbox" id="checkGolpesA"> Escolher os 4 golpes manualmente
+        </label>
+        <div class="golpes-grid" id="golpesA" style="display:none;">
+          <select class="select-golpe" data-slot="0"></select>
+          <select class="select-golpe" data-slot="1"></select>
+          <select class="select-golpe" data-slot="2"></select>
+          <select class="select-golpe" data-slot="3"></select>
+        </div>
+      </div>
+      <div></div>
+      <div class="campo-golpes">
+        <label class="check-golpes">
+          <input type="checkbox" id="checkGolpesB"> Escolher os 4 golpes manualmente
+        </label>
+        <div class="golpes-grid" id="golpesB" style="display:none;">
+          <select class="select-golpe" data-slot="0"></select>
+          <select class="select-golpe" data-slot="1"></select>
+          <select class="select-golpe" data-slot="2"></select>
+          <select class="select-golpe" data-slot="3"></select>
+        </div>
+      </div>
+    </div>
+
+    <button class="botao" id="btnSimular" style="margin-top: 8px;">
+      <span class="mini-bola"></span> Simular Batalha
+    </button>
+
+    <div id="erro"></div>
+  </div>
+
+  <div class="cartao resultado" id="cartaoResultado">
+    <div class="resultado-item">
+      <div class="resultado-cabecalho">
+        <span class="resultado-nome" id="nomeA"></span>
+        <span class="resultado-prob" id="probA"></span>
+      </div>
+      <div class="resultado-golpe" id="golpeA"></div>
+      <div class="barra-fundo"><div class="barra-preenchida" id="barraA"></div></div>
+    </div>
+
+    <div class="resultado-item">
+      <div class="resultado-cabecalho">
+        <span class="resultado-nome" id="nomeB"></span>
+        <span class="resultado-prob" id="probB"></span>
+      </div>
+      <div class="resultado-golpe" id="golpeB"></div>
+      <div class="barra-fundo"><div class="barra-preenchida" id="barraB"></div></div>
+    </div>
+
+    <div class="velocidade" id="velocidade"></div>
+  </div>
+
+</div>
+
+<script>
+  const btn = document.getElementById("btnSimular");
+  const erroDiv = document.getElementById("erro");
+  const cartaoResultado = document.getElementById("cartaoResultado");
+
+  function normaliza(nome) {
+    return nome.trim().toLowerCase().replace(/\s+/g, "_");
+  }
+
+  async function popularGolpes(lado) {
+    const pokInput = document.getElementById(lado === "A" ? "pokA" : "pokB");
+    const pokemon = normaliza(pokInput.value);
+    const container = document.getElementById("golpes" + lado);
+    const selects = container.querySelectorAll(".select-golpe");
+
+    let golpes = [];
+    if (pokemon) {
+      try {
+        const resp = await fetch("/api/movimentos?pokemon=" + encodeURIComponent(pokemon));
+        const dados = await resp.json();
+        golpes = dados.golpes || [];
+      } catch (e) {
+        golpes = [];
+      }
+    }
+
+    selects.forEach((sel) => {
+      const valorAtual = sel.value;
+      sel.innerHTML = "";
+      const optNone = document.createElement("option");
+      optNone.value = "none";
+      optNone.textContent = "(nenhum)";
+      sel.appendChild(optNone);
+      golpes.forEach((g) => {
+        const opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g.replace(/_/g, " ");
+        sel.appendChild(opt);
+      });
+      if ([...sel.options].some((o) => o.value === valorAtual)) {
+        sel.value = valorAtual;
+      }
+    });
+  }
+
+  ["A", "B"].forEach((lado) => {
+    const checkbox = document.getElementById("checkGolpes" + lado);
+    const container = document.getElementById("golpes" + lado);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        container.style.display = "flex";
+        popularGolpes(lado);
+      } else {
+        container.style.display = "none";
+      }
+    });
+  });
+
+  function golpesEscolhidos(lado) {
+    const checkbox = document.getElementById("checkGolpes" + lado);
+    if (!checkbox.checked) return null;
+    const container = document.getElementById("golpes" + lado);
+    return [...container.querySelectorAll(".select-golpe")].map((s) => s.value);
+  }
+
+  btn.addEventListener("click", async () => {
+    erroDiv.style.display = "none";
+    cartaoResultado.style.display = "none";
+
+    const pokA = normaliza(document.getElementById("pokA").value);
+    const pokB = normaliza(document.getElementById("pokB").value);
+    const nivelA = document.getElementById("nivelA").value;
+    const nivelB = document.getElementById("nivelB").value;
+    const golpesA = golpesEscolhidos("A");
+    const golpesB = golpesEscolhidos("B");
+
+    if (!pokA || !pokB) {
+      erroDiv.textContent = "Escolha os dois pokemon antes de simular.";
+      erroDiv.style.display = "block";
+      return;
+    }
+
+    try {
+      const resp = await fetch("/api/batalha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pokA, nivelA, pokB, nivelB, golpesA, golpesB }),
+      });
+      const r = await resp.json();
+
+      if (!resp.ok) {
+        erroDiv.textContent = r.erro || "Erro ao calcular a batalha.";
+        erroDiv.style.display = "block";
+        return;
+      }
+
+      document.getElementById("nomeA").textContent = pokA.replace(/_/g, " ");
+      document.getElementById("nomeB").textContent = pokB.replace(/_/g, " ");
+      document.getElementById("probA").textContent = r.probA.toFixed(1) + "%";
+      document.getElementById("probB").textContent = r.probB.toFixed(1) + "%";
+      document.getElementById("golpeA").textContent =
+        "Melhor golpe: " + r.moveA.replace(/_/g, " ") + " (dano estimado " + r.danoA.toFixed(2) + ")";
+      document.getElementById("golpeB").textContent =
+        "Melhor golpe: " + r.moveB.replace(/_/g, " ") + " (dano estimado " + r.danoB.toFixed(2) + ")";
+      document.getElementById("barraA").style.width = r.probA + "%";
+      document.getElementById("barraB").style.width = r.probB + "%";
+
+      let textoVel;
+      if (r.velA > r.velB) textoVel = `<b>${pokA.replace(/_/g, " ")}</b> e mais rapido e ataca primeiro.`;
+      else if (r.velB > r.velA) textoVel = `<b>${pokB.replace(/_/g, " ")}</b> e mais rapido e ataca primeiro.`;
+      else textoVel = "Os dois pokemon tem a mesma velocidade.";
+      document.getElementById("velocidade").innerHTML = textoVel;
+
+      cartaoResultado.style.display = "block";
+    } catch (e) {
+      erroDiv.textContent = "Nao foi possivel conectar ao servidor.";
+      erroDiv.style.display = "block";
+    }
+  });
+</script>
+</body>
+</html>

@@ -339,4 +339,41 @@ perguntar_continuar :-
     ;  write('Ate a proxima, treinador!'), nl
     ).
 
-:- initialization(menu).
+% Comentado: o menu de terminal nao deve disparar automaticamente quando
+% este arquivo for consultado a partir do Python (pyswip). Para usar o
+% menu de terminal como antes, descomente a linha abaixo e rode via swipl.
+% :- initialization(menu).
+
+% ---------- Predicados para uso a partir do Python (pyswip) ----------
+% Versao "pura" de calcular_batalha/6: nao imprime nada, so unifica os
+% resultados em resultado(...), para o Python conseguir ler os valores.
+
+calcular_batalha_dados(PokA, NivelA, EscolhaA, PokB, NivelB, EscolhaB,
+                        resultado(ProbA, ProbB, MoveA, DanoA, MoveB, DanoB, VelA, VelB)) :-
+    pokemon(_, PokA, _, _, _, _, _, _, _, _),
+    pokemon(_, PokB, _, _, _, _, _, _, _, _),
+
+    melhor_ataque_geral(PokA, NivelA, PokB, NivelB, EscolhaA, MoveA, DanoA),
+    melhor_ataque_geral(PokB, NivelB, PokA, NivelA, EscolhaB, MoveB, DanoB),
+
+    pokemon_status_real(PokA, NivelA, HPA, _, _, _, _, VelA),
+    pokemon_status_real(PokB, NivelB, HPB, _, _, _, _, VelB),
+
+    ( HPB > 0 -> TaxaA is DanoA / HPB ; TaxaA = 0 ),
+    ( HPA > 0 -> TaxaB is DanoB / HPA ; TaxaB = 0 ),
+
+    bonus_velocidade(VelA, VelB, BonusA, BonusB),
+    ScoreA is TaxaA * BonusA,
+    ScoreB is TaxaB * BonusB,
+    Total is ScoreA + ScoreB,
+
+    ( Total =< 0
+    -> ProbA = 50.0, ProbB = 50.0
+    ;  ProbA is (ScoreA / Total) * 100,
+       ProbB is (ScoreB / Total) * 100
+    ).
+
+% Lista de todos os pokemon disponiveis no banco (para popular a GUI).
+lista_pokemon(Nomes) :-
+    findall(Nome, pokemon(_, Nome, _, _, _, _, _, _, _, _), Todos),
+    sort(Todos, Nomes).
