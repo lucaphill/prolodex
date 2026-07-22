@@ -243,7 +243,7 @@ batalha(PokA, NivelA, MovesA, PokB, NivelB, MovesB) :-
 menu :-
     nl,
     write('=========================================='), nl,
-    write('   SIMULADOR DE BATALHA POKEMON (Gen 5)'), nl,
+    write('   SIMULADOR DE BATALHA POKEMON    '), nl,
     write('=========================================='), nl,
     ( tem_dados_nivel
     -> true

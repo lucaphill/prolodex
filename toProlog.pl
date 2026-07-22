@@ -104,7 +104,7 @@ gera_todos :-
     format(AStream, '% aprende(Pokemon, Movimento).~n~n', []),
 
     forall(
-        between(494, 649, Id),
+        between(1, 1025, Id),
         ( gera_fato_pokemon(Id, Fato, NomeAtom, MovesUnicos),
           format(PStream, '~w~n', [Fato]),
           forall(
