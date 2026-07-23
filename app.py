@@ -29,6 +29,13 @@ prolog.consult("tipos.pl")
 prolog.consult("batalha.pl")
 
 
+def pokemon_existe(nome):
+    if not nome:
+        return False
+    resultados = list(prolog.query(f"pokemon(_, {nome}, _, _, _, _, _, _, _, _)"))
+    return len(resultados) > 0
+
+
 def listar_pokemon():
     resultados = list(prolog.query("lista_pokemon(Nomes)"))
     if not resultados:
@@ -91,8 +98,8 @@ def api_movimentos():
 @app.route("/api/batalha", methods=["POST"])
 def api_batalha():
     dados = request.json or {}
-    pok_a = str(dados.get("pokA", "")).strip().lower()
-    pok_b = str(dados.get("pokB", "")).strip().lower()
+    pok_a = str(dados.get("pokA", "")).strip().lower().replace(" ", "_")
+    pok_b = str(dados.get("pokB", "")).strip().lower().replace(" ", "_")
 
     try:
         nivel_a = int(dados.get("nivelA", 50))
@@ -102,6 +109,13 @@ def api_batalha():
 
     if not pok_a or not pok_b:
         return jsonify({"erro": "Escolha os dois pokemon."}), 400
+
+    # Checa cada lado separadamente, pra dizer exatamente qual nome nao bateu
+    # com nenhum pokemon do banco (em vez de um erro generico).
+    if not pokemon_existe(pok_a):
+        return jsonify({"erro": f"Pokemon '{pok_a}' nao encontrado no banco de dados."}), 400
+    if not pokemon_existe(pok_b):
+        return jsonify({"erro": f"Pokemon '{pok_b}' nao encontrado no banco de dados."}), 400
 
     def normaliza_lista(golpes):
         return [str(g).strip().lower().replace(" ", "_") for g in (golpes or [])]
@@ -113,7 +127,7 @@ def api_batalha():
 
     r = simular_batalha(pok_a, nivel_a, escolha_a, pok_b, nivel_b, escolha_b)
     if r is None:
-        return jsonify({"erro": "Pokemon nao encontrado, ou nao foi possivel calcular a batalha com os golpes escolhidos."}), 400
+        return jsonify({"erro": "Nao foi possivel calcular a batalha com os golpes escolhidos (confira se pelo menos 1 golpe causa dano)."}), 400
 
     return jsonify(r)
 

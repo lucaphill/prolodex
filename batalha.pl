@@ -377,3 +377,9 @@ calcular_batalha_dados(PokA, NivelA, EscolhaA, PokB, NivelB, EscolhaB,
 lista_pokemon(Nomes) :-
     findall(Nome, pokemon(_, Nome, _, _, _, _, _, _, _, _), Todos),
     sort(Todos, Nomes).
+
+% Lista de todos os golpes que um pokemon pode aprender (para popular os
+% seletores de golpe quando o usuario quer escolher manualmente).
+movimentos_pokemon(Pokemon, Moves) :-
+    findall(M, aprende(Pokemon, M), Todos),
+    sort(Todos, Moves).

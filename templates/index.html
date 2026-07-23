@@ -371,6 +371,15 @@
     selects.forEach((sel) => {
       const valorAtual = sel.value;
       sel.innerHTML = "";
+
+      if (golpes.length === 0) {
+        const optAviso = document.createElement("option");
+        optAviso.value = "none";
+        optAviso.textContent = "(digite um pokemon valido primeiro)";
+        sel.appendChild(optAviso);
+        return;
+      }
+
       const optNone = document.createElement("option");
       optNone.value = "none";
       optNone.textContent = "(nenhum)";
@@ -390,6 +399,8 @@
   ["A", "B"].forEach((lado) => {
     const checkbox = document.getElementById("checkGolpes" + lado);
     const container = document.getElementById("golpes" + lado);
+    const pokInput = document.getElementById(lado === "A" ? "pokA" : "pokB");
+
     checkbox.addEventListener("change", () => {
       if (checkbox.checked) {
         container.style.display = "flex";
@@ -397,6 +408,15 @@
       } else {
         container.style.display = "none";
       }
+    });
+
+    // Se o nome do pokemon mudar DEPOIS de marcar a caixinha, atualiza a
+    // lista de golpes pro pokemon novo (senao ela ficava desatualizada).
+    pokInput.addEventListener("change", () => {
+      if (checkbox.checked) popularGolpes(lado);
+    });
+    pokInput.addEventListener("blur", () => {
+      if (checkbox.checked) popularGolpes(lado);
     });
   });
 
