@@ -97,7 +97,7 @@ gera_fato_move(MoveAtom, Fato) :-
 % gera os 3 arquivos
 gera_todos :-
     % --- 1o: pokemon.pl e aprende.pl juntos ---
-    open('pokemon_gen5.pl', write, PStream),
+    open('pokemon.pl', write, PStream),
     format(PStream, '% pokemon(ID, Nome, Tipo1, Tipo2, HP, Attack, Defense, SpAtk, SpDef, Speed).~n~n', []),
 
     open('aprende.pl', write, AStream),
@@ -136,4 +136,7 @@ gera_todos :-
     ),
     close(MStream).
 
-:- initialization(gera_todos).
+% Caso queira gerar novamente a base de dados coloque 'gera_todos' no terminal, ta comentado pq
+% o vs code consulta o arquivo automaticamente e fica refazendo a base de dados toda hora
+
+%:- initialization(gera_todos).

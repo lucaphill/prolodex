@@ -146,4 +146,7 @@ gera_niveis :-
     ),
     close(Stream).
 
-:- initialization(gera_niveis).
+% Caso queira gerar novamente a base de dados coloque 'gera_niveis' no terminal, ta comentado pq
+% o vs code consulta o arquivo automaticamente e fica refazendo a base de dados toda hora
+
+%:- initialization(gera_niveis).
