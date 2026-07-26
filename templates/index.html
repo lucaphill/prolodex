@@ -30,7 +30,7 @@
 
   .app {
     width: 100%;
-    max-width: 560px;
+    max-width: 960px;
   }
 
   .topo {
@@ -244,6 +244,44 @@
     font-size: 13px;
   }
   .select-golpe:focus { outline: none; border-color: var(--vermelho); }
+
+  .arena {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .cartao-central {
+    flex: 1 1 420px;
+    max-width: 560px;
+    min-width: 300px;
+  }
+
+  .sprite-lado {
+    flex: 0 0 auto;
+    width: clamp(120px, 22vw, 220px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .sprite-lado img {
+    width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    filter: drop-shadow(4px 6px 0 rgba(29, 39, 49, 0.15));
+    display: none;
+  }
+
+  .sprite-lado img.visivel {
+    display: block;
+  }
+
+  .sprite-lado.direita img {
+    transform: scaleX(-1);
+  }
 </style>
 </head>
 <body>
@@ -254,7 +292,10 @@
     <h1>Simulador de Batalha Pokemon</h1>
   </div>
 
-  <div class="cartao">
+  <div class="arena">
+    <div class="sprite-lado esquerda"><img id="spriteA" alt=""></div>
+
+    <div class="cartao cartao-central">
     <div class="linha-vs">
       <div class="campo" style="margin-bottom:0;">
         <label for="pokA">Pokemon A</label>
@@ -269,7 +310,7 @@
 
     <datalist id="lista-pokemons">
       {% for p in pokemons %}
-      <option value="{{ p }}">
+      <option value="{{ p.replace('_', ' ') | title }}">
       {% endfor %}
     </datalist>
 
@@ -316,6 +357,9 @@
     </button>
 
     <div id="erro"></div>
+    </div>
+
+    <div class="sprite-lado direita"><img id="spriteB" alt=""></div>
   </div>
 
   <div class="cartao resultado" id="cartaoResultado">
@@ -349,6 +393,33 @@
 
   function normaliza(nome) {
     return nome.trim().toLowerCase().replace(/\s+/g, "_");
+  }
+
+  async function atualizarSprite(lado) {
+    const pokInput = document.getElementById(lado === "A" ? "pokA" : "pokB");
+    const img = document.getElementById("sprite" + lado);
+    const pokemon = normaliza(pokInput.value).replace(/_/g, "-");
+
+    if (!pokemon) {
+      img.classList.remove("visivel");
+      img.src = "";
+      return;
+    }
+
+    try {
+      const resp = await fetch("https://pokeapi.co/api/v2/pokemon/" + encodeURIComponent(pokemon));
+      if (!resp.ok) throw new Error("nao encontrado");
+      const dados = await resp.json();
+      const url =
+        dados.sprites?.other?.["official-artwork"]?.front_default ||
+        dados.sprites?.front_default;
+      if (!url) throw new Error("sem sprite");
+      img.src = url;
+      img.classList.add("visivel");
+    } catch (e) {
+      img.classList.remove("visivel");
+      img.src = "";
+    }
   }
 
   async function popularGolpes(lado) {
@@ -418,6 +489,11 @@
     pokInput.addEventListener("blur", () => {
       if (checkbox.checked) popularGolpes(lado);
     });
+
+    // Atualiza o sprite sempre que o nome mudar (independente da caixinha
+    // de golpes manuais). "input" ja cobre a selecao via datalist.
+    pokInput.addEventListener("input", () => atualizarSprite(lado));
+    pokInput.addEventListener("blur", () => atualizarSprite(lado));
   });
 
   function golpesEscolhidos(lado) {
